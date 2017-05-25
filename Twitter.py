@@ -1,17 +1,19 @@
 import re
 from re import sub
 import time
-import cookielib
-from cookielib import CookieJar
-import urllib2
-from urllib2 import urlopen
+import http.cookiejar
+from http.cookiejar import CookieJar
+import urllib.request
+from urllib.request import urlopen
 import difflib
+import functools
 
 cj = CookieJar()
-opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
-keyWord = 'samsung'
+#Unfortunately this version does not support spaces in the key word
+keyWord = 'Samsung'
 
 def getTweet():
     oldTweet = []
@@ -20,23 +22,22 @@ def getTweet():
     while 1 < 2:
         try:
             sourceCode = opener.open('https://twitter.com/search/realtime?q=' + keyWord + '&src=hash').read()
-            splitSource = re.findall(r'<p class="TweetTextSize  js-tweet-text tweet-text" lang="en" data-aria-label-part="0">(.*?)</p>', sourceCode)
-
+            splitSource = re.findall(r'<p class="TweetTextSize  js-tweet-text tweet-text" lang="en" data-aria-label-part="0">(.*?)</p>', str(sourceCode))
             for item in splitSource:
-                print '-----------------------------------------'
+                print('-----------------------------------------')
                 aTweet = re.sub(r'<.*?>', '', item)
-                print aTweet
+                print (aTweet)
                 newTweet.append(aTweet)
-                print '-----------------------------------------'
-                print ''
-                
+                print ('-----------------------------------------')
+                print ('')
+
             comparison = difflib.SequenceMatcher(None, newTweet, oldTweet)
             sim = comparison.ratio()
-            print '############'
-            print sim
+            print ('############')
+            print ("Similarity " + str(sim))
             simArray.append(sim)
             simArray.remove(simArray[0])
-            waitMultiplier = reduce(lambda x, y: x+y, simArray)/len(simArray)
+            waitMultiplier = functools.reduce(lambda x, y: x+y, simArray)/len(simArray)
 
             oldTweet = [None]
             for eachItem in newTweet:
@@ -44,16 +45,11 @@ def getTweet():
 
             newTweet = [None]
             time.sleep(waitMultiplier*45)
-        
-
-
-        
-        except Exception, e:
-            print str(e)
-            print 'Error in the main'
-            return ''
+        except:
+            print("HELP!")
 
 
 
+if __name__ == '__main__':
+    getTweet()
 
-getTweet()
